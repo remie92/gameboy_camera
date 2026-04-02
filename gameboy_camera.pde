@@ -30,7 +30,7 @@ void setup() {
   }
   testImage.updatePixels();
 
-  PImage processedImage=processImage(testImage, test_pallete);
+  PImage processedImage=processImage(testImage, test_pallete,10);
   image(processedImage, 0, 0, width, height);
 }
 
@@ -54,7 +54,7 @@ void draw() {
       }
     }
     grayImage.updatePixels();
-    PImage processingImage=processImage(grayImage, test_pallete);
+    PImage processingImage=processImage(grayImage, test_pallete,10);
     image(processingImage, width/2, 0, int(cameraWidth*scaleFactor), int(cameraHeight*scaleFactor));
   } else {
     background(128);
