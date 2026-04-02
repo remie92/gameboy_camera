@@ -1,4 +1,4 @@
-//Test
+//Test, in process_develop
 PImage testImage;
 PImage printIcon;
 PImage trashIcon;
@@ -87,7 +87,7 @@ color[][] palettes={
   },
 };
 
-
+int[][][] dithers=new int[0][0][0];
 color[] color_palette=palettes[0];
 PImage[] paletteImages=new PImage[palettes.length];
 
@@ -102,6 +102,7 @@ int cameraHeight=144;
 
 
 void setup() {
+  dithers=loadDithers();
   cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
   cam.start();
   noSmooth();
