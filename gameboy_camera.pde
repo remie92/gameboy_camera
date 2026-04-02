@@ -1,5 +1,8 @@
 //Test
 PImage testImage;
+PImage printIcon;
+PImage trashIcon;
+PImage saveIcon;
 
 color[][] palettes={
   {
@@ -105,6 +108,9 @@ void setup() {
   for (int i=0; i<palettes.length; i++) {
     paletteImages[i]=imgFromPallete(palettes[i]);
   }
+  printIcon=loadImage("print.png");
+  saveIcon=loadImage("save.png");
+  trashIcon=loadImage("trash.png");
   testImage=loadImage("temp_image.jpeg");
   testImage.resize(128, 128);
   testImage.loadPixels();
@@ -122,6 +128,9 @@ void setup() {
 
 
 PImage getProcessedImage() {
+  if (cam != null) {
+    image(cam, -10, -10, 2, 2);
+  }
   PImage grayImage=cam.copy();
   grayImage.loadPixels();
   for (int i=0; i<grayImage.width; i++) {
@@ -135,62 +144,117 @@ PImage getProcessedImage() {
   return processingImage;
 }
 
+PImage finalImage;
+
+int drawingMode=0;
+
 
 void draw() {
   background(0);
-  int maxWidth=width/2;
-  int maxHeight=height-paletteIconHeight;
-  float widthFactor=maxWidth/float(cameraWidth);
-  float heightFactor=maxHeight/float(cameraHeight);
-  float scaleFactor=min(widthFactor, heightFactor);
-  if (cam != null) {
-    image(cam, 0, 0, int(cameraWidth*scaleFactor), int(cameraHeight*scaleFactor));
-    PImage grayImage=cam.copy();
-    grayImage.loadPixels();
-    for (int i=0; i<grayImage.width; i++) {
-      for (int j=0; j<grayImage.height; j++) {
-        int b=int(brightness(grayImage.get(i, j)));
-        grayImage.set(i, j, color(b, b, b));
+  if (drawingMode==0) {
+    int maxWidth=width-600;
+    int maxHeight=height-paletteIconHeight;
+    float widthFactor=maxWidth/float(cameraWidth);
+    float heightFactor=maxHeight/float(cameraHeight);
+    float scaleFactor=min(widthFactor, heightFactor);
+    if (cam != null) {
+      image(cam, width/2-(int(cameraWidth*scaleFactor)/2), 0, 2, 2);
+      PImage grayImage=cam.copy();
+      grayImage.resize(grayImage.width/2, grayImage.height/2);
+      grayImage.filter(POSTERIZE, 5);
+      grayImage.loadPixels();
+      for (int i=0; i<grayImage.width; i++) {
+        for (int j=0; j<grayImage.height; j++) {
+          int b=int(brightness(grayImage.get(i, j)));
+          grayImage.set(i, j, color(b, b, b));
+        }
       }
-    }
-    grayImage.updatePixels();
-    PImage processingImage=processImage(grayImage, color_palette, dithering_value);
-    image(processingImage, width/2, 0, int(cameraWidth*scaleFactor), int(cameraHeight*scaleFactor));
-  } else {
-    background(128);
-    text("Waiting for camera to activate", 100, height/2);
-  }
-
-  for (int i = 0; i < palettes.length; i++) {
-    float slotWidth = float(width) / palettes.length;
-    float x = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
-    if (selectedIndex==i) {
-      fill(255);
-      noStroke();
-      rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
+      grayImage.updatePixels();
+      image(grayImage, width/2-(int(cameraWidth*scaleFactor)/2), 0, int(cameraWidth*scaleFactor), int(cameraHeight*scaleFactor));
     } else {
-      fill(100);
-      noStroke();
-      rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
+      background(128);
+      text("Waiting for camera to activate", 100, height/2);
     }
-    image(paletteImages[i], x, height - paletteIconHeight-7, paletteIconHeight, paletteIconHeight);
+
+    for (int i = 0; i < palettes.length; i++) {
+      float slotWidth = float(width) / palettes.length;
+      float x = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
+      if (selectedIndex==i) {
+        fill(255);
+        noStroke();
+        rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
+      } else {
+        fill(100);
+        noStroke();
+        rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
+      }
+      image(paletteImages[i], x, height - paletteIconHeight-7, paletteIconHeight, paletteIconHeight);
+    }
+    image(printIcon, width-280, height/2-(240/2), 240, 240);
+  } else if (drawingMode == 1) {
+    int maxWidth = width - (240 * 2);
+    int maxHeight = height;
+
+    float ratio = min((float)maxWidth / finalImage.width, (float)maxHeight / finalImage.height);
+    int imgW = (int)(finalImage.width * ratio);
+    int imgH = (int)(finalImage.height * ratio);
+
+    int x = 240 + (maxWidth - imgW) / 2;
+    int y = (maxHeight - imgH) / 2;
+
+    image(finalImage, x, y, imgW, imgH);
+
+    fill(0);
+    noStroke();
+    rect(x, y+(printProgress*imgH), imgW, imgH);
+    if (random(0, 20)<1) {
+      printProgress+=random(0.01, 0.1);
+    }
+    if (printProgress>=1) {
+      drawingMode=2;
+    }
+  } else if (drawingMode == 2) {
+    int maxWidth = width - (240 * 2);
+    int maxHeight = height;
+
+    float ratio = min((float)maxWidth / finalImage.width, (float)maxHeight / finalImage.height);
+    int imgW = (int)(finalImage.width * ratio);
+    int imgH = (int)(finalImage.height * ratio);
+
+    int x = 240 + (maxWidth - imgW) / 2;
+    int y = (maxHeight - imgH) / 2;
+
+    image(finalImage, x, y, imgW, imgH);
+    image(saveIcon, width-280, height/2-(240/2), 240, 240);
+    image(trashIcon, 40, height/2-(240/2), 240, 240);
   }
 }
+
+float printProgress=0;
+
+
+
 
 
 int selectedIndex=0;
 int paletteIconHeight=160;
 void mouseReleased() {
 
-
-  for (int i=0; i<palettes.length; i++) {
-    float slotWidth = float(width) / palettes.length;
-    float paletteDistance = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
-    int x=int(paletteDistance);
-    int y=height-paletteIconHeight;
-    if (mouseX>x&&mouseY>y&&mouseX<x+paletteIconHeight&&mouseY<y+paletteIconHeight) {
-      selectedIndex=i;
-      color_palette=palettes[i];
+  if (drawingMode==0) {
+    for (int i=0; i<palettes.length; i++) {
+      float slotWidth = float(width) / palettes.length;
+      float paletteDistance = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
+      int x=int(paletteDistance);
+      int y=height-paletteIconHeight;
+      if (mouseX>x&&mouseY>y&&mouseX<x+paletteIconHeight&&mouseY<y+paletteIconHeight) {
+        selectedIndex=i;
+        color_palette=palettes[i];
+      }
+    }
+    if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
+      drawingMode=1;
+      finalImage=getProcessedImage();
+      printProgress=0;
     }
   }
 }
