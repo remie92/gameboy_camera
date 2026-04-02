@@ -12,6 +12,6 @@ noSmooth();
 testImage=loadImage("temp_image.jpeg");
 testImage.filter(GRAY);
 testImage.resize(128,128);
-PImage processedImage=processImage(testImage,test_pallete);
+PImage processedImage=processImage(testImage,test_pallete,10);
 image(processedImage,0,0,width,height);
 }
