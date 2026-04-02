@@ -1,4 +1,4 @@
-//Test
+//Test, in process_develop
 PImage testImage;
 color[] test_pallete=new color[0];
 void setup(){
