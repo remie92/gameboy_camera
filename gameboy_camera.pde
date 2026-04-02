@@ -85,25 +85,68 @@ color[][] palettes={
   {
     color(0, 0, 0),
     color(255)
+  }, {
+    color(89, 69, 69),
+    color(129, 91, 91),
+    color(158, 118, 118),
+    color(255, 248, 234)
+  },
+  {
+    color(0, 48, 73),
+    color(214, 40, 40),
+    color(247, 127, 0),
+    color(252, 191, 73)
+  },
+  {
+    color(27, 12, 12),
+    color(49, 62, 23),
+    color(76, 92, 45),
+    color(255, 222, 66)
+  },
+  {
+    color(53, 41, 97),
+    color(119, 65, 129),
+    color(230, 178, 198),
+    color(246, 229, 229)
+  },
+  {
+    color(97, 97, 97),
+    color(138, 174, 146),
+    color(196, 227, 203),
+    color(244, 249, 244)
+  },
+  {
+    color(0, 26, 110),
+    color(7, 71, 153),
+    color(0, 153, 144),
+    color(255, 255, 187)
+  },
+  {
+    color(43,42,76),
+    color(179,19,18),
+    color(234,144,108),
+    color(238,226,222)
+  },
+  {
+    color(2,2,2),
+    color(13,40,24),
+    color(4, 71, 28),
+    color(5, 140, 66),
+    color(22, 219, 101)
   },{
-    color(89,69,69),
-    color(129,91,91),
-    color(158,118,118),
-    color(255,248,234)
+    color(64, 31, 62),
+    color(63, 46, 86),
+    color(69, 63, 120),
+    color(117, 154, 171),
+    color(250, 242, 161)
   },
   {
-    color(0,48,73),
-    color(214,40,40),
-    color(247,127,0),
-    color(252,191,73)
+    color(33, 26, 29),
+    color(99, 32, 238),
+    color(128, 117, 255),
+    color(248, 240, 251),
+    color(202, 213, 202)
   },
-  {
-    color(27,12,12),
-    color(49,62,23),
-    color(76,92,45),
-    color(255,222,66)
-  },
-  
 };
 
 int[][][] dithers=new int[0][0][0];
@@ -116,8 +159,8 @@ import ketai.camera.*;
 
 KetaiCamera cam;
 
-int cameraWidth=176;
-int cameraHeight=144;
+int cameraWidth=352;
+int cameraHeight=288;
 
 
 void setup() {
@@ -196,20 +239,20 @@ void draw() {
       text("Waiting for camera to activate", 100, height/2);
     }
 
+    pushMatrix();
+    translate(-paletteScrollOffset, 0);
     for (int i = 0; i < palettes.length; i++) {
-      float slotWidth = float(width) / palettes.length;
-      float x = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
-      if (selectedIndex==i) {
+      float x = paletteSlotWidth * i + (paletteSlotWidth - paletteIconHeight) / 2;
+      if (selectedIndex == i) {
         fill(255);
-        noStroke();
-        rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
       } else {
         fill(100);
-        noStroke();
-        rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
       }
+      noStroke();
+      rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
       image(paletteImages[i], x, height - paletteIconHeight-7, paletteIconHeight, paletteIconHeight);
     }
+    popMatrix();
     image(printIcon, width-280, height/2-(240/2), 240, 240);
   } else if (drawingMode == 1) {
     int maxWidth = width - (240 * 2);
@@ -264,17 +307,40 @@ float paletteDragStartX = 0;         // where the finger pressed
 float paletteDragStartOffset = 0;    // scroll value at press time
 boolean paletteDragging = false;     // true while finger is in bar
 static final int DRAG_THRESHOLD = 12; // px before a press becomes a drag
+
+void mousePressed() {
+  if (drawingMode == 0 && mouseY > height - paletteIconHeight - 28) {
+    paletteDragging    = true;
+    paletteDragStartX      = mouseX;
+    paletteDragStartOffset = paletteScrollOffset;
+  }
+}
+
+void mouseDragged() {
+  if (paletteDragging) {
+    float totalPaletteWidth = palettes.length * paletteSlotWidth;
+    float maxScroll = max(0, totalPaletteWidth - width);
+    paletteScrollOffset = constrain(
+      paletteDragStartOffset - (mouseX - paletteDragStartX),
+      0, maxScroll
+      );
+  }
+}
 void mouseReleased() {
 
   if (drawingMode==0) {
-    for (int i=0; i<palettes.length; i++) {
-      float slotWidth = float(width) / palettes.length;
-      float paletteDistance = slotWidth * i + (slotWidth - paletteIconHeight) / 2;
-      int x=int(paletteDistance);
-      int y=height-paletteIconHeight;
-      if (mouseX>x&&mouseY>y&&mouseX<x+paletteIconHeight&&mouseY<y+paletteIconHeight) {
-        selectedIndex=i;
-        color_palette=palettes[i];
+    paletteDragging = false;  // always clear the drag flag
+    // only register a tap if the finger barely moved
+    if (abs(mouseX - paletteDragStartX) < DRAG_THRESHOLD) {
+      for (int i = 0; i < palettes.length; i++) {
+        float x = paletteSlotWidth * i + (paletteSlotWidth - paletteIconHeight) / 2
+          - paletteScrollOffset;   // account for current scroll
+        int y = height - paletteIconHeight - 7;
+        if (mouseX > x && mouseY > y &&
+          mouseX < x + paletteIconHeight && mouseY < y + paletteIconHeight) {
+          selectedIndex = i;
+          color_palette = palettes[i];
+        }
       }
     }
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
