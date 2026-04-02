@@ -4,6 +4,8 @@ PImage testImage;
 PImage printIcon;
 PImage trashIcon;
 PImage saveIcon;
+PImage lowIcon;
+PImage highIcon;
 
 color[][] palettes={
   {
@@ -122,18 +124,18 @@ color[][] palettes={
     color(255, 255, 187)
   },
   {
-    color(43,42,76),
-    color(179,19,18),
-    color(234,144,108),
-    color(238,226,222)
+    color(43, 42, 76),
+    color(179, 19, 18),
+    color(234, 144, 108),
+    color(238, 226, 222)
   },
   {
-    color(2,2,2),
-    color(13,40,24),
+    color(2, 2, 2),
+    color(13, 40, 24),
     color(4, 71, 28),
     color(5, 140, 66),
     color(22, 219, 101)
-  },{
+  }, {
     color(64, 31, 62),
     color(63, 46, 86),
     color(69, 63, 120),
@@ -159,12 +161,22 @@ import ketai.camera.*;
 
 KetaiCamera cam;
 
-int cameraWidth=352;
-int cameraHeight=288;
-
-
+int cameraWidth=176;
+int cameraHeight=144;
+int cameraWidth1=352;
+int cameraHeight1=288;
+int cameraWidth2=176;
+int cameraHeight2=144;
+boolean lowRes=false;
 void setup() {
   dithers=loadDithers();
+  if (lowRes) {
+    cameraWidth=cameraWidth2;
+    cameraHeight=cameraHeight2;
+  } else {
+    cameraWidth=cameraWidth1;
+    cameraHeight=cameraHeight1;
+  }
   cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
   cam.start();
   noSmooth();
@@ -174,6 +186,8 @@ void setup() {
   printIcon=loadImage("print.png");
   saveIcon=loadImage("save.png");
   trashIcon=loadImage("trash.png");
+  lowIcon=loadImage("low_res.png");
+  highIcon=loadImage("high_res.png");
   testImage=loadImage("temp_image.jpeg");
   testImage.resize(128, 128);
   testImage.loadPixels();
@@ -254,6 +268,11 @@ void draw() {
     }
     popMatrix();
     image(printIcon, width-280, height/2-(240/2), 240, 240);
+    if (lowRes) {
+      image(lowIcon, width-280, height/2-(240/2)-320, 240, 240);
+    } else {
+      image(highIcon, width-280, height/2-(240/2)-320, 240, 240);
+    }
   } else if (drawingMode == 1) {
     int maxWidth = width - (240 * 2);
     int maxHeight = height;
@@ -347,6 +366,18 @@ void mouseReleased() {
       drawingMode=1;
       finalImage=getProcessedImage();
       printProgress=0;
+    }
+    if (mouseX>width-280&&mouseY>height/2-(240/2)-320&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240-320) {
+      lowRes=!lowRes;
+      if (lowRes) {
+        cameraWidth=cameraWidth2;
+        cameraHeight=cameraHeight2;
+      } else {
+        cameraWidth=cameraWidth1;
+        cameraHeight=cameraHeight1;
+      }
+      cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
+      cam.start();
     }
   } else if (drawingMode==2) {
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
