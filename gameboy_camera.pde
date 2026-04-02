@@ -1,3 +1,4 @@
+//Test
 PImage testImage;
 color[] test_pallete={
 color(94,0,6),
