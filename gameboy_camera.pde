@@ -148,6 +148,41 @@ color[][] palettes={
     color(248, 240, 251),
     color(202, 213, 202)
   },
+  {
+    color(69, 5, 12),
+    color(114, 14, 7),
+    color(139, 98, 32),
+    color(213, 172, 78),
+    color(238, 207, 109),
+  },
+  {
+    color(3, 37, 108),
+    color(37, 65, 178),
+    color(23, 104, 172),
+    color(6, 190, 225),
+    color(255, 255, 255),
+  },
+  {
+    color(78, 1, 16),
+    color(136, 22, 0),
+    color(193, 98, 0),
+    color(227, 227, 106),
+    color(203, 255, 140),
+  },
+  {
+    color(31, 47, 22),
+    color(57, 91, 80),
+    color(90, 118, 132),
+    color(146, 175, 215),
+    color(197, 209, 235),
+  },
+  {
+    color(37, 22, 5),
+    color(197, 123, 87),
+    color(241, 171, 134),
+    color(247, 219, 167),
+    color(156, 175, 183),
+  },
 };
 
 int[][][] dithers=new int[0][0][0];
@@ -187,6 +222,7 @@ void setup() {
   trashIcon=loadImage("trash.png");
   lowIcon=loadImage("low_res.png");
   highIcon=loadImage("high_res.png");
+  background(0);
 }
 
 
@@ -255,6 +291,18 @@ void draw() {
     }
 
     pushMatrix();
+    // Coast after release
+    if (!paletteDragging && abs(paletteVelocity) > 0.5) {
+      float totalPaletteWidth = palettes.length * paletteSlotWidth;
+      float maxScroll = max(0, totalPaletteWidth - width);
+      paletteScrollOffset = constrain(paletteScrollOffset + paletteVelocity, 0, maxScroll);
+      paletteVelocity *= FRICTION;
+      if (paletteScrollOffset <= 0 || paletteScrollOffset >= maxScroll) {
+        paletteVelocity = 0;
+      }
+    } else if (!paletteDragging) {
+      paletteVelocity = 0;
+    }
     translate(-paletteScrollOffset, 0);
     for (int i = 0; i < palettes.length; i++) {
       float x = paletteSlotWidth * i + (paletteSlotWidth - paletteIconHeight) / 2;
@@ -264,10 +312,32 @@ void draw() {
         fill(100);
       }
       noStroke();
-      rect(x-7, height - paletteIconHeight-14, paletteIconHeight+14, paletteIconHeight+14);
-      image(paletteImages[i], x, height - paletteIconHeight-7, paletteIconHeight, paletteIconHeight);
+      rect(x-7, height - paletteIconHeight-14-16, paletteIconHeight+14, paletteIconHeight+14);
+      image(paletteImages[i], x, height - paletteIconHeight-7-16, paletteIconHeight, paletteIconHeight);
     }
     popMatrix();
+    // Draw scrollbar
+    float totalPaletteWidth = palettes.length * paletteSlotWidth;
+    float maxScroll = max(0, totalPaletteWidth - width);
+
+    if (maxScroll > 0) {
+      float barAreaW  = width;          // scrollbar track width
+      float barAreaX  = 0;
+      float barAreaY  = height - 16;           // sits at the very bottom
+      float barH      = 16;
+
+      float thumbW    = barAreaW * (width / totalPaletteWidth);
+      float thumbX    = barAreaX + (paletteScrollOffset / maxScroll) * (barAreaW - thumbW);
+
+      // Track
+      noStroke();
+      fill(255, 40);
+      rect(barAreaX, barAreaY, barAreaW, barH, barH);
+
+      // Thumb
+      fill(255, 140);
+      rect(thumbX, barAreaY, thumbW, barH, barH);
+    }
     image(printIcon, width-280, height/2-(240/2), 240, 240);
     if (lowRes) {
       image(lowIcon, width-280, height/2-(240/2)-320, 240, 240);
@@ -333,13 +403,13 @@ void draw() {
     pushMatrix();
     translate(x+imgW/2, y+imgH+(animationProgress*height*1.2));
     rotate(sin(animationProgress*13*2.2)/10.0);
-    translate(-imgW/2, -imgH);
-    image(finalImage, 0, 0, imgW, imgH);
+    translate(-imgW/2, -imgH-(animationProgress*height*1.2));
+    image(finalImage, 0, (animationProgress*height*1.2), imgW, imgH);
     popMatrix();
     animationProgress+=0.004;
-    if (random(0, 3)<1&&animationProgress<0.6) {
+    if (random(0, 1.5)<1&&animationProgress<0.6) {
       color col=color_palette[int(random(0, color_palette.length-0.001))];
-      particles.add(new Particle(random(width/2-imgW/1.8, width/2+imgW/1.8), height+5, col, new PVector(random(-30, 30), random(-40, 0))));
+      particles.add(new Particle(random(width/2-imgW/1.8, width/2+imgW/1.8), height+5, col, new PVector(random(-24, 24), random(-30, 0))));
     }
     for (int i = 0; i < particles.size(); i++) {
       Particle part = particles.get(i);
@@ -401,17 +471,22 @@ ArrayList<Particle> particles = new ArrayList<Particle>();
 int selectedIndex=0;
 int paletteIconHeight=160;
 float paletteSlotWidth = 200;        // fixed px per palette slot
-float paletteScrollOffset = 0;       // current horizontal scroll
-float paletteDragStartX = 0;         // where the finger pressed
-float paletteDragStartOffset = 0;    // scroll value at press time
-boolean paletteDragging = false;     // true while finger is in bar
-static final int DRAG_THRESHOLD = 12; // px before a press becomes a drag
+float paletteScrollOffset = 0;
+float paletteDragStartX = 0;
+float paletteDragStartOffset = 0;
+boolean paletteDragging = false;
+static final int DRAG_THRESHOLD = 12;
+float paletteVelocity = 0;       // current scroll velocity (px/frame)
+float lastMouseX = 0;            // mouseX on the previous frame
+static final float FRICTION = 0.91;  // velocity multiplier per frame (0–1)
 
 void mousePressed() {
   if (drawingMode == 0 && mouseY > height - paletteIconHeight - 28) {
-    paletteDragging    = true;
-    paletteDragStartX      = mouseX;
+    paletteDragging       = true;
+    paletteDragStartX     = mouseX;
     paletteDragStartOffset = paletteScrollOffset;
+    paletteVelocity       = 0;   // kill any ongoing coast
+    lastMouseX            = mouseX;
   }
 }
 
@@ -423,17 +498,20 @@ void mouseDragged() {
       paletteDragStartOffset - (mouseX - paletteDragStartX),
       0, maxScroll
       );
+    paletteVelocity = lastMouseX - mouseX;  // positive = scrolling right
+    lastMouseX = mouseX;
   }
 }
-void mouseReleased() {
 
-  if (drawingMode==0) {
-    paletteDragging = false;  // always clear the drag flag
-    // only register a tap if the finger barely moved
+void mouseReleased() {
+  if (drawingMode == 0) {
+    paletteDragging = false;
+    // velocity keeps its value so it coasts after release
+
     if (abs(mouseX - paletteDragStartX) < DRAG_THRESHOLD) {
       for (int i = 0; i < palettes.length; i++) {
         float x = paletteSlotWidth * i + (paletteSlotWidth - paletteIconHeight) / 2
-          - paletteScrollOffset;   // account for current scroll
+          - paletteScrollOffset;
         int y = height - paletteIconHeight - 7;
         if (mouseX > x && mouseY > y &&
           mouseX < x + paletteIconHeight && mouseY < y + paletteIconHeight) {
