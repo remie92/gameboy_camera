@@ -7,7 +7,7 @@ color(213,62,15),
 color(238,217,185)
 };
 void setup(){
-size(800,800);
+size(700,700);
 noSmooth();
 testImage=loadImage("temp_image.jpeg");
 testImage.filter(GRAY);
