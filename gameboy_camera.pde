@@ -1,6 +1,5 @@
 import android.os.Environment;
 import android.media.MediaScannerConnection;
-PImage testImage;
 PImage printIcon;
 PImage trashIcon;
 PImage saveIcon;
@@ -188,19 +187,6 @@ void setup() {
   trashIcon=loadImage("trash.png");
   lowIcon=loadImage("low_res.png");
   highIcon=loadImage("high_res.png");
-  testImage=loadImage("temp_image.jpeg");
-  testImage.resize(128, 128);
-  testImage.loadPixels();
-  for (int i=0; i<testImage.width; i++) {
-    for (int j=0; j<testImage.height; j++) {
-      int b=int(brightness(testImage.get(i, j)));
-      testImage.set(i, j, color(b, b, b));
-    }
-  }
-  testImage.updatePixels();
-
-  PImage processedImage=processImage(testImage, color_palette);
-  image(processedImage, 0, 0, width, height);
 }
 
 
@@ -225,10 +211,25 @@ PImage finalImage;
 
 int drawingMode=0;
 
+void onResume() {
+  super.onResume();
+
+  if (lowRes) {
+    cameraWidth = cameraWidth2;
+    cameraHeight = cameraHeight2;
+  } else {
+    cameraWidth = cameraWidth1;
+    cameraHeight = cameraHeight1;
+  }
+
+  cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
+  cam.start();
+}
 
 void draw() {
   background(0);
   if (drawingMode==0) {
+
     int maxWidth=width-600;
     int maxHeight=height-paletteIconHeight;
     float widthFactor=maxWidth/float(cameraWidth);
@@ -273,6 +274,15 @@ void draw() {
     } else {
       image(highIcon, width-280, height/2-(240/2)-320, 240, 240);
     }
+
+
+    if (animationProgress<1) {
+      animationProgress+=0.015;
+    } else {
+      animationProgress=1;
+    }
+    fill(0, 0, 0, 255-animationProgress*255);
+    rect(0, 0, width, height);
   } else if (drawingMode == 1) {
     int maxWidth = width - (240 * 2);
     int maxHeight = height;
@@ -288,11 +298,11 @@ void draw() {
 
     fill(0);
     noStroke();
-    rect(x, y+(printProgress*imgH), imgW, imgH);
-    if (random(0, 20)<1) {
-      printProgress+=random(0.01, 0.1);
+    rect(x, y+(animationProgress*imgH), imgW, imgH);
+    if (random(0, 8)<1) {
+      animationProgress+=random(0.01, 0.1);
     }
-    if (printProgress>=1) {
+    if (animationProgress>=1) {
       drawingMode=2;
     }
   } else if (drawingMode == 2) {
@@ -309,13 +319,83 @@ void draw() {
     image(finalImage, x, y, imgW, imgH);
     image(saveIcon, width-280, height/2-(240/2), 240, 240);
     image(trashIcon, 40, height/2-(240/2), 240, 240);
+  } else if (drawingMode==3) {
+    int maxWidth = width - (240 * 2);
+    int maxHeight = height;
+
+    float ratio = min((float)maxWidth / finalImage.width, (float)maxHeight / finalImage.height);
+    int imgW = (int)(finalImage.width * ratio);
+    int imgH = (int)(finalImage.height * ratio);
+
+    int x = 240 + (maxWidth - imgW) / 2;
+    int y = (maxHeight - imgH) / 2;
+
+    pushMatrix();
+    translate(x+imgW/2, y+imgH+(animationProgress*height*1.2));
+    rotate(sin(animationProgress*13*2.2)/10.0);
+    translate(-imgW/2, -imgH);
+    image(finalImage, 0, 0, imgW, imgH);
+    popMatrix();
+    animationProgress+=0.004;
+    if (random(0, 3)<1&&animationProgress<0.6) {
+      color col=color_palette[int(random(0, color_palette.length-0.001))];
+      particles.add(new Particle(random(width/2-imgW/1.8, width/2+imgW/1.8), height+5, col, new PVector(random(-30, 30), random(-40, 0))));
+    }
+    for (int i = 0; i < particles.size(); i++) {
+      Particle part = particles.get(i);
+      part.tick();
+      part.display();
+    }
+    for (int i = particles.size() - 1; i >= 0; i--) {
+      Particle part = particles.get(i);
+      if (part.finished()) {
+        particles.remove(i);
+      }
+    }
+    if (animationProgress>=1) {
+      drawingMode=0;
+      animationProgress=0;
+    }
+    noStroke();
+    fill(0, 0, 0, map(animationProgress, 0, 1, -1024, 255));
+    rect(-5, -5, width+10, height+10);
+  } else if (drawingMode==4) {
+    int maxWidth = width - (240 * 2);
+    int maxHeight = height;
+
+    float ratio = min((float)maxWidth / finalImage.width, (float)maxHeight / finalImage.height);
+    int imgW = (int)(finalImage.width * ratio);
+    int imgH = (int)(finalImage.height * ratio);
+
+    int x = 240 + (maxWidth - imgW) / 2;
+    int y = (maxHeight - imgH) / 2;
+    image(finalImage, x, y, imgW, imgH);
+    animationProgress+=0.004;
+
+
+    fill(255, 0, 0, 128);
+    stroke(255, 0, 0, 70);
+    strokeWeight(10);
+    rect(x, height/2+(sin(animationProgress*15)*imgH/2), imgW, 10);
+
+    noStroke();
+    fill(0, 0, 0, map(animationProgress, 0, 1, -1024, 250));
+    rect(-5, -5, width+10, height+10);
+    if (animationProgress>=1) {
+      drawingMode=0;
+      animationProgress=0;
+      background(0);
+    }
+    if (animationProgress>0.99) {
+      background(0);
+    }
   }
 }
 
-float printProgress=0;
+float animationProgress=0;
 
 
-
+ArrayList<Particle> particles = new ArrayList<Particle>();
 
 
 int selectedIndex=0;
@@ -365,7 +445,7 @@ void mouseReleased() {
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
       drawingMode=1;
       finalImage=getProcessedImage();
-      printProgress=0;
+      animationProgress=0;
     }
     if (mouseX>width-280&&mouseY>height/2-(240/2)-320&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240-320) {
       lowRes=!lowRes;
@@ -379,9 +459,14 @@ void mouseReleased() {
       cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
       cam.start();
     }
+  } else if (drawingMode==1) {
+    animationProgress+=0.25;
+  } else if (drawingMode==3||drawingMode==4) {
+    animationProgress=0.8;
   } else if (drawingMode==2) {
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
-      drawingMode=0;
+      drawingMode=4;
+      animationProgress=0;
       PImage upscaled = createImage(finalImage.width * 10, finalImage.height * 10, ARGB);
       finalImage.loadPixels();
       upscaled.loadPixels();
@@ -403,11 +488,10 @@ void mouseReleased() {
 
       upscaled.save(filePath);
       MediaScannerConnection.scanFile(getActivity(), new String[]{ filePath }, null, null);
-      delay(400);
     }
     if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
-      drawingMode=0;
-      delay(400);
+      drawingMode=3;
+      animationProgress=0;
     }
   }
 }
