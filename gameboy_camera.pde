@@ -1,4 +1,5 @@
-//Test, in process_develop
+import android.os.Environment;
+import android.media.MediaScannerConnection;
 PImage testImage;
 PImage printIcon;
 PImage trashIcon;
@@ -84,7 +85,25 @@ color[][] palettes={
   {
     color(0, 0, 0),
     color(255)
+  },{
+    color(89,69,69),
+    color(129,91,91),
+    color(158,118,118),
+    color(255,248,234)
   },
+  {
+    color(0,48,73),
+    color(214,40,40),
+    color(247,127,0),
+    color(252,191,73)
+  },
+  {
+    color(27,12,12),
+    color(49,62,23),
+    color(76,92,45),
+    color(255,222,66)
+  },
+  
 };
 
 int[][][] dithers=new int[0][0][0];
@@ -123,7 +142,7 @@ void setup() {
   }
   testImage.updatePixels();
 
-  PImage processedImage=processImage(testImage, color_palette, dithering_value);
+  PImage processedImage=processImage(testImage, color_palette);
   image(processedImage, 0, 0, width, height);
 }
 
@@ -141,7 +160,7 @@ PImage getProcessedImage() {
     }
   }
   grayImage.updatePixels();
-  PImage processingImage=processImage(grayImage, color_palette, dithering_value);
+  PImage processingImage=processImage(grayImage, color_palette);
   return processingImage;
 }
 
@@ -239,6 +258,12 @@ float printProgress=0;
 
 int selectedIndex=0;
 int paletteIconHeight=160;
+float paletteSlotWidth = 200;        // fixed px per palette slot
+float paletteScrollOffset = 0;       // current horizontal scroll
+float paletteDragStartX = 0;         // where the finger pressed
+float paletteDragStartOffset = 0;    // scroll value at press time
+boolean paletteDragging = false;     // true while finger is in bar
+static final int DRAG_THRESHOLD = 12; // px before a press becomes a drag
 void mouseReleased() {
 
   if (drawingMode==0) {
@@ -256,6 +281,36 @@ void mouseReleased() {
       drawingMode=1;
       finalImage=getProcessedImage();
       printProgress=0;
+    }
+  } else if (drawingMode==2) {
+    if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
+      drawingMode=0;
+      PImage upscaled = createImage(finalImage.width * 10, finalImage.height * 10, ARGB);
+      finalImage.loadPixels();
+      upscaled.loadPixels();
+      for (int y = 0; y < finalImage.height; y++) {
+        for (int x = 0; x < finalImage.width; x++) {
+          color c = finalImage.pixels[y * finalImage.width + x];
+          for (int dy = 0; dy < 10; dy++) {
+            for (int dx = 0; dx < 10; dx++) {
+              upscaled.pixels[(y * 10 + dy) * upscaled.width + (x * 10 + dx)] = c;
+            }
+          }
+        }
+      }
+      upscaled.updatePixels();
+
+      String folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+      String fileName = "palette_" + year() + nf(month(), 2) + nf(day(), 2) + "_" + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2) + ".png";
+      String filePath = folder + "/" + fileName;
+
+      upscaled.save(filePath);
+      MediaScannerConnection.scanFile(getActivity(), new String[]{ filePath }, null, null);
+      delay(400);
+    }
+    if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
+      drawingMode=0;
+      delay(400);
     }
   }
 }
