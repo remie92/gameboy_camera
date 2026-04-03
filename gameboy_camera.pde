@@ -1,5 +1,8 @@
 import android.os.Environment;
 import android.media.MediaScannerConnection;
+import android.content.Context;
+import android.os.Vibrator;
+Vibrator vibrator;
 PImage printIcon;
 PImage trashIcon;
 PImage saveIcon;
@@ -7,44 +10,46 @@ PImage lowIcon;
 PImage highIcon;
 PImage randomIcon;
 PImage randomSelectedIcon;
+PImage flashOffIcon;
+PImage flashOnIcon;
 
 color[][] palettes={
-  {
+  {//Warm Red
     color(94, 0, 6),
     color(155, 15, 6),
     color(213, 62, 15),
     color(238, 217, 185)
   },
-  {
+  {//Cool Green
     color(9, 20, 19),
     color(40, 90, 72),
     color(64, 138, 113),
     color(176, 228, 204)
   },
-  {
+  {//Dutch
     color(49, 44, 219),
     color(240, 240, 250),
     color(242, 68, 68)
   },
-  {
+  {//Blossom
     color(2, 26, 84),
     color(255, 133, 187),
     color(255, 206, 227),
     color(245, 245, 245)
   },
-  {
+  {//Synthwave
     color(14, 33, 160),
     color(77, 47, 178),
     color(177, 83, 215),
     color(243, 117, 194)
   },
-  {
+  {//Racing
     color(0, 0, 0),
     color(70, 92, 136),
     color(255, 122, 48),
     color(233, 227, 223)
   },
-  {
+  {//Rainbow
     color(204, 82, 82), // Red
     color(210, 140, 80), // Orange
     color(200, 190, 90), // Yellow
@@ -53,7 +58,7 @@ color[][] palettes={
     color(90, 80, 150), // Indigo
     color(130, 90, 160)    // Violet
   },
-  {
+  {//Retro Brown
     color(40, 30, 50), // Deep purple-black
     color(80, 55, 90), // Dark plum
     color(130, 80, 120), // Mauve
@@ -61,7 +66,7 @@ color[][] palettes={
     color(220, 160, 130), // Peach
     color(240, 210, 170)   // Warm cream
   },
-  {
+  {//Retro Blue
     color(20, 35, 50), // Deep navy
     color(40, 75, 100), // Dark teal
     color(60, 120, 140), // Steel blue
@@ -69,7 +74,7 @@ color[][] palettes={
     color(160, 210, 200), // Pale aqua
     color(220, 240, 235)   // Misty white
   },
-  {
+  {//
     color(35, 20, 15), // Deep charcoal-brown
     color(90, 45, 25), // Dark ember
     color(160, 80, 40), // Burnt sienna
@@ -187,6 +192,37 @@ color[][] palettes={
   },
 };
 
+String[] names={
+  "Warm Red",
+  "Cool Green",
+  "Dutch",
+  "Blossom",
+  "Synthwave",
+  "Racing",
+  "Rainbow",
+  "Retro Pink",
+  "Retro Blue",
+  "Retro Orange",
+  "Retro Green",
+  "TwoTone",
+  "Coffee",
+  "Flame",
+  "Retro",
+  "Purpley",
+  "Soft Green",
+  "Sea",
+  "Carpet",
+  "Heavy Green",
+  "Old Poster",
+  "Heavy Purple",
+  "Red Coffee",
+  "Ocean",
+  "Gross",
+  "Cool Blue",
+  "Cappuccino",
+};
+
+PFont pixelFont;
 int[][][] dithers=new int[0][0][0];
 color[] color_palette=palettes[0];
 PImage[] paletteImages=new PImage[palettes.length];
@@ -205,6 +241,10 @@ int cameraWidth2=176;
 int cameraHeight2=144;
 boolean lowRes=false;
 void setup() {
+  paletteText=names[0];
+  pixelFont = createFont("PixelifySans-VariableFont_wght.ttf", 32);
+  textFont(pixelFont);
+  textSize(32);
   randomPaletteImage=new PImage(1, 1);
   dithers=loadDithers();
   if (lowRes) {
@@ -214,8 +254,10 @@ void setup() {
     cameraWidth=cameraWidth1;
     cameraHeight=cameraHeight1;
   }
+  vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
   cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
   cam.start();
+
   noSmooth();
   for (int i=0; i<palettes.length; i++) {
     paletteImages[i]=imgFromPallete(palettes[i]);
@@ -227,10 +269,33 @@ void setup() {
   highIcon=loadImage("high_res.png");
   randomIcon=loadImage("random.png");
   randomSelectedIcon=loadImage("randomSelected.png");
+  flashOffIcon=loadImage("flashOff.png");
+  flashOnIcon=loadImage("flashOn.png");
   background(0);
 }
 
+boolean flashEnabled=false;
 
+void vibrate(int duration) {
+  int amplitude = 150 + (int)random(-100, 100);         // 0–255 amplitude range
+  amplitude=constrain(amplitude, 0, 255);
+
+  if (android.os.Build.VERSION.SDK_INT >= 26) {
+    vibrator.vibrate(android.os.VibrationEffect.createOneShot(duration, amplitude));
+  } else {
+    vibrator.vibrate(duration);
+  }
+}
+
+void vibrate(int duration, int amplitude) {
+  amplitude=constrain(amplitude, 0, 255);
+
+  if (android.os.Build.VERSION.SDK_INT >= 26) {
+    vibrator.vibrate(android.os.VibrationEffect.createOneShot(duration, amplitude));
+  } else {
+    vibrator.vibrate(duration);
+  }
+}
 PImage getProcessedImage() {
   if (cam != null) {
     image(cam, -10, -10, 2, 2);
@@ -255,6 +320,8 @@ int drawingMode=0;
 void onResume() {
   super.onResume();
 
+
+
   if (lowRes) {
     cameraWidth = cameraWidth2;
     cameraHeight = cameraHeight2;
@@ -265,9 +332,14 @@ void onResume() {
 
   cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
   cam.start();
+  if (flashEnabled) {
+    cam.enableFlash();
+  }
 }
 
 PImage randomPaletteImage;
+
+String paletteText="DEFAULT_TEXT";
 
 void draw() {
   background(0);
@@ -344,6 +416,9 @@ void draw() {
       // Thumb
       fill(255, 140);
       rect(thumbX, barAreaY, thumbW, barH, barH);
+      fill(140);
+      textSize(width*0.022);
+      text(paletteText, width*0.01, height*0.77);
     }
     image(printIcon, width-280, height/2-(240/2), 240, 240);
     if (lowRes) {
@@ -358,6 +433,11 @@ void draw() {
     } else {
       image(randomSelectedIcon, 40, height/2-(240/2), 240, 240);
       //image(randomPaletteImage, 110, height/2-(100/2), 100, 100);
+    }
+    if (flashEnabled) {
+      image(flashOnIcon, 40, height/2-(240/2)-320, 240, 240);
+    } else {
+      image(flashOffIcon, 40, height/2-(240/2)-320, 240, 240);
     }
 
     if (animationProgress<1) {
@@ -383,8 +463,10 @@ void draw() {
     fill(0);
     noStroke();
     rect(x, y+(animationProgress*imgH), imgW, imgH);
-    if (random(0, 8)<1) {
-      animationProgress+=random(0.01, 0.1);
+    if (random(0, 12)<1) {
+      float progressAdded=random(0.01, 0.1);
+      animationProgress+=progressAdded;
+      vibrate(int(1000*progressAdded));
     }
     if (animationProgress>=1) {
       drawingMode=2;
@@ -439,6 +521,9 @@ void draw() {
     if (animationProgress>=1) {
       drawingMode=0;
       animationProgress=0;
+      if (flashEnabled) {
+        cam.enableFlash();
+      }
     }
     noStroke();
     fill(0, 0, 0, map(animationProgress, 0, 1, -1024, 255));
@@ -468,6 +553,9 @@ void draw() {
     if (animationProgress>=1) {
       drawingMode=0;
       animationProgress=0;
+      if (flashEnabled) {
+        cam.enableFlash();
+      }
       background(0);
     }
     if (animationProgress>0.99) {
@@ -532,6 +620,7 @@ void mouseReleased() {
           selectedIndex = i;
           color_palette = palettes[i];
           randomPaletteImage=new PImage(1, 1);
+          paletteText=names[i];
         }
       }
     }
@@ -544,6 +633,13 @@ void mouseReleased() {
       drawingMode=1;
       finalImage=getProcessedImage();
       animationProgress=0;
+      if (flashEnabled) {
+        cam.disableFlash();
+        delay(100);
+        cam.enableFlash();
+        delay(200);
+        cam.disableFlash();
+      }
     }
     if (mouseX>width-280&&mouseY>height/2-(240/2)-320&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240-320) {
       lowRes=!lowRes;
@@ -557,16 +653,26 @@ void mouseReleased() {
       cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
       cam.start();
     }
+    if (mouseX>40&&mouseY>height/2-(240/2)-320&&mouseX<40+240&&mouseY<height/2-(240/2)+240-320) {
+      flashEnabled=!flashEnabled;
+      if (flashEnabled) {
+        cam.enableFlash();
+      } else {
+        cam.disableFlash();
+      }
+    }
     if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
       int[] palette=generateRandomPalette(int(random(3, 7)));
       color_palette=palette;
       randomPaletteImage=imgFromPallete(palette);
       selectedIndex=-1;
+      paletteText="Random";
     }
   } else if (drawingMode==1) {
     animationProgress+=0.25;
   } else if (drawingMode==3||drawingMode==4) {
     animationProgress=0.8;
+    vibrator.cancel();
   } else if (drawingMode==2) {
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
       drawingMode=4;
@@ -596,7 +702,14 @@ void mouseReleased() {
     if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
       drawingMode=3;
       animationProgress=0;
+      vibrate(3800, 10);
     }
+  }
+}
+
+void stopVibration() {
+  if (vibrator != null) {
+    vibrator.cancel();
   }
 }
 
