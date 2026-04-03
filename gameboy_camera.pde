@@ -12,6 +12,10 @@ PImage randomIcon;
 PImage randomSelectedIcon;
 PImage flashOffIcon;
 PImage flashOnIcon;
+PImage superIcon;
+PImage tinyIcon;
+PImage basicIcon;
+PImage smoothIcon;
 
 color[][] palettes={
   {//Warm Red
@@ -92,6 +96,12 @@ color[][] palettes={
   },
   {
     color(0, 0, 0),
+    color(255)
+  },
+  {
+    color(0, 0, 0),
+    color(100),
+    color(200),
     color(255)
   }, {
     color(89, 69, 69),
@@ -205,6 +215,7 @@ String[] names={
   "Retro Orange",
   "Retro Green",
   "TwoTone",
+  "FourTone",
   "Coffee",
   "Flame",
   "Retro",
@@ -225,7 +236,8 @@ String[] names={
 PFont pixelFont;
 color[] color_palette=palettes[0];
 PImage[] paletteImages=new PImage[palettes.length];
-
+int[][][] dithers=new int[0][0][0];
+int[][][] ditherPatterns;
 int dithering_value=7;
 
 import ketai.camera.*;
@@ -233,28 +245,26 @@ import ketai.camera.*;
 KetaiCamera cam;
 
 int cameraWidth=176;
+int cameraWidth0=128;
+int cameraHeight0=112;
 int cameraHeight=144;
-int cameraWidth1=352;
-int cameraHeight1=288;
-int cameraWidth2=176;
-int cameraHeight2=144;
-boolean lowRes=false;
+int cameraWidth2=352;
+int cameraHeight2=288;
+int cameraWidth1=176;
+int cameraHeight1=144;
+int cameraWidth3=720;
+int cameraHeight3=540;
+int resolutionType=1;
 void setup() {
+  ditherPatterns=generateDitherPatterns(16);
+  dithers=loadDithers();
   paletteText=names[0];
   pixelFont = createFont("PixelifySans-VariableFont_wght.ttf", 32);
   textFont(pixelFont);
   textSize(32);
   randomPaletteImage=new PImage(1, 1);
-  if (lowRes) {
-    cameraWidth=cameraWidth2;
-    cameraHeight=cameraHeight2;
-  } else {
-    cameraWidth=cameraWidth1;
-    cameraHeight=cameraHeight1;
-  }
+  setupCamera();
   vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-  cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
-  cam.start();
 
   noSmooth();
   for (int i=0; i<palettes.length; i++) {
@@ -269,6 +279,10 @@ void setup() {
   randomSelectedIcon=loadImage("randomSelected.png");
   flashOffIcon=loadImage("flashOff.png");
   flashOnIcon=loadImage("flashOn.png");
+  superIcon=loadImage("ultra_res.png");
+  tinyIcon=loadImage("tiny_res.png");
+  basicIcon=loadImage("basic_dither.png");
+  smoothIcon=loadImage("smooth_dither.png");
   background(0);
 }
 
@@ -294,11 +308,20 @@ void vibrate(int duration, int amplitude) {
     vibrator.vibrate(duration);
   }
 }
+
+
+int ditherType=0;
+PImage oldCamera;
 PImage getProcessedImage() {
   if (cam != null) {
     image(cam, -10, -10, 2, 2);
   }
   PImage grayImage=cam.copy();
+  if (resolutionType!=0) {
+    grayImage.resize(cameraWidth, cameraHeight);
+  } else {
+    grayImage.resize(cameraWidth0, cameraHeight0);
+  }
   grayImage.loadPixels();
   for (int i=0; i<grayImage.width; i++) {
     for (int j=0; j<grayImage.height; j++) {
@@ -307,7 +330,25 @@ PImage getProcessedImage() {
     }
   }
   grayImage.updatePixels();
-  PImage processingImage=processImage(grayImage, color_palette);
+  oldCamera=grayImage.copy();
+  PImage processingImage=new PImage(10, 10);
+  ;
+  if (ditherType==0) {
+    processingImage=processImage(grayImage, color_palette);
+  } else if (ditherType==1) {
+    processingImage=processImage_old(grayImage, color_palette);
+  }
+  return processingImage;
+}
+
+PImage getReprocessedImage() {
+  PImage processingImage=new PImage(10, 10);
+  ;
+  if (ditherType==0) {
+    processingImage=processImage(oldCamera.copy(), color_palette);
+  } else if (ditherType==1) {
+    processingImage=processImage_old(oldCamera.copy(), color_palette);
+  }
   return processingImage;
 }
 
@@ -320,16 +361,7 @@ void onResume() {
 
 
 
-  if (lowRes) {
-    cameraWidth = cameraWidth2;
-    cameraHeight = cameraHeight2;
-  } else {
-    cameraWidth = cameraWidth1;
-    cameraHeight = cameraHeight1;
-  }
-
-  cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
-  cam.start();
+  setupCamera();
   if (flashEnabled) {
     cam.enableFlash();
   }
@@ -349,9 +381,19 @@ void draw() {
     float heightFactor=maxHeight/float(cameraHeight);
     float scaleFactor=min(widthFactor, heightFactor);
     if (cam != null) {
+
+      widthFactor=maxWidth/float(cam.width);
+      heightFactor=maxHeight/float(cam.height);
+
+      scaleFactor=min(widthFactor, heightFactor);
       image(cam, width/2-(int(cameraWidth*scaleFactor)/2), 0, 2, 2);
       PImage grayImage=cam.copy();
-      grayImage.resize(grayImage.width/2, grayImage.height/2);
+
+      if (resolutionType==0) {
+        grayImage.resize(grayImage.width/4, grayImage.height/4);
+      } else {
+        grayImage.resize(grayImage.width/2, grayImage.height/2);
+      }
       grayImage.filter(POSTERIZE, 5);
       grayImage.loadPixels();
       for (int i=0; i<grayImage.width; i++) {
@@ -366,6 +408,8 @@ void draw() {
       background(128);
       text("Waiting for camera to activate", 100, height/2);
     }
+
+
 
     pushMatrix();
     // Coast after release
@@ -393,6 +437,7 @@ void draw() {
       image(paletteImages[i], x, height - paletteIconHeight-7-16, paletteIconHeight, paletteIconHeight);
     }
     popMatrix();
+
     // Draw scrollbar
     float totalPaletteWidth = palettes.length * paletteSlotWidth;
     float maxScroll = max(0, totalPaletteWidth - width);
@@ -406,6 +451,7 @@ void draw() {
       float thumbW    = barAreaW * (width / totalPaletteWidth);
       float thumbX    = barAreaX + (paletteScrollOffset / maxScroll) * (barAreaW - thumbW);
 
+
       // Track
       noStroke();
       fill(255, 40);
@@ -414,15 +460,25 @@ void draw() {
       // Thumb
       fill(255, 140);
       rect(thumbX, barAreaY, thumbW, barH, barH);
-      fill(140);
-      textSize(width*0.022);
-      text(paletteText, width*0.01, height*0.77);
     }
+    fill(140);
+    textSize(width*0.022);
+    text(paletteText, width*0.01, height*0.77);
     image(printIcon, width-280, height/2-(240/2), 240, 240);
-    if (lowRes) {
+
+    switch (resolutionType) {
+    case 0:
+      image(tinyIcon, width-280, height/2-(240/2)-320, 240, 240);
+      break;
+    case 1:
       image(lowIcon, width-280, height/2-(240/2)-320, 240, 240);
-    } else {
+      break;
+    case 2:
       image(highIcon, width-280, height/2-(240/2)-320, 240, 240);
+      break;
+    case 3:
+      image(superIcon, width-280, height/2-(240/2)-320, 240, 240);
+      break;
     }
 
     if (selectedIndex!=-1) {
@@ -483,6 +539,11 @@ void draw() {
     image(finalImage, x, y, imgW, imgH);
     image(saveIcon, width-280, height/2-(240/2), 240, 240);
     image(trashIcon, 40, height/2-(240/2), 240, 240);
+    if (ditherType==0) {
+      image(smoothIcon, width-280, height/2-(240/2)-320, 240, 240);
+    } else if (ditherType==1) {
+      image(basicIcon, width-280, height/2-(240/2)-320, 240, 240);
+    }
   } else if (drawingMode==3) {
     int maxWidth = width - (240 * 2);
     int maxHeight = height;
@@ -640,16 +701,9 @@ void mouseReleased() {
       }
     }
     if (mouseX>width-280&&mouseY>height/2-(240/2)-320&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240-320) {
-      lowRes=!lowRes;
-      if (lowRes) {
-        cameraWidth=cameraWidth2;
-        cameraHeight=cameraHeight2;
-      } else {
-        cameraWidth=cameraWidth1;
-        cameraHeight=cameraHeight1;
-      }
-      cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
-      cam.start();
+      resolutionType+=1;
+      resolutionType=resolutionType%4;
+      setupCamera();
     }
     if (mouseX>40&&mouseY>height/2-(240/2)-320&&mouseX<40+240&&mouseY<height/2-(240/2)+240-320) {
       flashEnabled=!flashEnabled;
@@ -701,6 +755,11 @@ void mouseReleased() {
       drawingMode=3;
       animationProgress=0;
       vibrate(3800, 10);
+    }
+    if (mouseX>width-280&&mouseY>height/2-(240/2)-320&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240-320) {
+      ditherType+=1;
+      ditherType=ditherType%2;
+      finalImage=getReprocessedImage();
     }
   }
 }
