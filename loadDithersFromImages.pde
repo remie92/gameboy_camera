@@ -1,5 +1,9 @@
 int[][][] loadDithers(){
-  String[] ditherNames={"dither1","dither2","dither3"};
+  //amount of black; dither1=8/16, dither2=4/16, dither3=12/16, dither4=6/16, dither5=10/16, dither6=2/16, dither7=14/16
+  //in order for failed attempt
+  //String[] ditherNames={"dither1","dither2","dither3","dither4","dither5","dither6","dither7"};
+  //in order from bright to dark
+  String[] ditherNames={"dither8","dither6","dither2","dither4","dither1","dither5","dither3","dither7","dither9"};
   int[][][] allDithers=new int[ditherNames.length][4][4];
   for(int i=0;i<ditherNames.length;i++){
     PImage loadedDither=loadImage(ditherNames[i]+".png");
