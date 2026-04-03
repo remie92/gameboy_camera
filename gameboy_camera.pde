@@ -223,7 +223,6 @@ String[] names={
 };
 
 PFont pixelFont;
-int[][][] dithers=new int[0][0][0];
 color[] color_palette=palettes[0];
 PImage[] paletteImages=new PImage[palettes.length];
 
@@ -246,7 +245,6 @@ void setup() {
   textFont(pixelFont);
   textSize(32);
   randomPaletteImage=new PImage(1, 1);
-  dithers=loadDithers();
   if (lowRes) {
     cameraWidth=cameraWidth2;
     cameraHeight=cameraHeight2;
