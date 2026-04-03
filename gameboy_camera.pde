@@ -6,6 +6,7 @@ PImage saveIcon;
 PImage lowIcon;
 PImage highIcon;
 PImage randomIcon;
+PImage randomSelectedIcon;
 
 color[][] palettes={
   {
@@ -225,6 +226,7 @@ void setup() {
   lowIcon=loadImage("low_res.png");
   highIcon=loadImage("high_res.png");
   randomIcon=loadImage("random.png");
+  randomSelectedIcon=loadImage("randomSelected.png");
   background(0);
 }
 
@@ -350,8 +352,13 @@ void draw() {
       image(highIcon, width-280, height/2-(240/2)-320, 240, 240);
     }
 
-    image(randomIcon, 40, height/2-(240/2), 240, 240);
-    image(randomPaletteImage, 110, height/2-(100/2), 100, 100);
+    if (selectedIndex!=-1) {
+      image(randomIcon, 40, height/2-(240/2), 240, 240);
+      //image(randomPaletteImage, 110, height/2-(100/2), 100, 100);
+    } else {
+      image(randomSelectedIcon, 40, height/2-(240/2), 240, 240);
+      //image(randomPaletteImage, 110, height/2-(100/2), 100, 100);
+    }
 
     if (animationProgress<1) {
       animationProgress+=0.015;
@@ -529,6 +536,11 @@ void mouseReleased() {
       }
     }
     if (mouseX>width-280&&mouseY>height/2-(240/2)&&mouseX<width-280+240&&mouseY<height/2-(240/2)+240) {
+      if (selectedIndex==-1) {
+        int[] palette=generateRandomPalette(int(random(3, 7)));
+        color_palette=palette;
+        randomPaletteImage=imgFromPallete(palette);
+      }
       drawingMode=1;
       finalImage=getProcessedImage();
       animationProgress=0;
@@ -546,7 +558,7 @@ void mouseReleased() {
       cam.start();
     }
     if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
-      int[] palette=generateRandomPalette(int(random(1, 10)));
+      int[] palette=generateRandomPalette(int(random(3, 7)));
       color_palette=palette;
       randomPaletteImage=imgFromPallete(palette);
       selectedIndex=-1;
