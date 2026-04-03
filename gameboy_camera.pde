@@ -5,6 +5,7 @@ PImage trashIcon;
 PImage saveIcon;
 PImage lowIcon;
 PImage highIcon;
+PImage randomIcon;
 
 color[][] palettes={
   {
@@ -203,6 +204,7 @@ int cameraWidth2=176;
 int cameraHeight2=144;
 boolean lowRes=false;
 void setup() {
+  randomPaletteImage=new PImage(1, 1);
   dithers=loadDithers();
   if (lowRes) {
     cameraWidth=cameraWidth2;
@@ -222,6 +224,7 @@ void setup() {
   trashIcon=loadImage("trash.png");
   lowIcon=loadImage("low_res.png");
   highIcon=loadImage("high_res.png");
+  randomIcon=loadImage("random.png");
   background(0);
 }
 
@@ -261,6 +264,8 @@ void onResume() {
   cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
   cam.start();
 }
+
+PImage randomPaletteImage;
 
 void draw() {
   background(0);
@@ -345,6 +350,8 @@ void draw() {
       image(highIcon, width-280, height/2-(240/2)-320, 240, 240);
     }
 
+    image(randomIcon, 40, height/2-(240/2), 240, 240);
+    image(randomPaletteImage, 110, height/2-(100/2), 100, 100);
 
     if (animationProgress<1) {
       animationProgress+=0.015;
@@ -517,6 +524,7 @@ void mouseReleased() {
           mouseX < x + paletteIconHeight && mouseY < y + paletteIconHeight) {
           selectedIndex = i;
           color_palette = palettes[i];
+          randomPaletteImage=new PImage(1, 1);
         }
       }
     }
@@ -536,6 +544,12 @@ void mouseReleased() {
       }
       cam = new KetaiCamera(this, cameraWidth, cameraHeight, 10);
       cam.start();
+    }
+    if (mouseX>40&&mouseY>height/2-(240/2)&&mouseX<40+240&&mouseY<height/2-(240/2)+240) {
+      int[] palette=generateRandomPalette(int(random(1, 10)));
+      color_palette=palette;
+      randomPaletteImage=imgFromPallete(palette);
+      selectedIndex=-1;
     }
   } else if (drawingMode==1) {
     animationProgress+=0.25;
