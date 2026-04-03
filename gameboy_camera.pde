@@ -200,6 +200,191 @@ color[][] palettes={
     color(247, 219, 167),
     color(156, 175, 183),
   },
+  {//DMG Green
+    color(15, 56, 15),
+    color(48, 98, 48),
+    color(139, 172, 15),
+    color(155, 188, 15)
+  },
+  {//GB Pocket
+    color(0, 0, 0),
+    color(84, 84, 84),
+    color(168, 168, 168),
+    color(252, 252, 252)
+  },
+  {//GB Red
+    color(56, 8, 8),
+    color(120, 30, 30),
+    color(210, 85, 60),
+    color(252, 220, 200)
+  },
+  {//GB Blue
+    color(8, 16, 56),
+    color(30, 60, 140),
+    color(60, 130, 210),
+    color(195, 220, 252)
+  },
+  {//GB Yellow
+    color(40, 30, 0),
+    color(120, 90, 0),
+    color(210, 175, 20),
+    color(252, 245, 160)
+  },
+  {//GB Purple
+    color(24, 8, 48),
+    color(80, 30, 120),
+    color(175, 90, 210),
+    color(240, 210, 252)
+  },
+  {//GB Teal
+    color(5, 38, 38),
+    color(15, 100, 95),
+    color(40, 190, 175),
+    color(190, 248, 240)
+  },
+  {//GB Sepia
+    color(28, 16, 4),
+    color(95, 60, 20),
+    color(195, 148, 75),
+    color(250, 232, 190)
+  },
+  {//GB Pink
+    color(50, 8, 28),
+    color(155, 30, 80),
+    color(230, 110, 160),
+    color(252, 215, 232)
+  },
+  {//GB Olive
+    color(16, 22, 4),
+    color(60, 80, 15),
+    color(148, 172, 40),
+    color(218, 232, 170)
+  },
+  {//GB Noir
+    color(5, 5, 5),
+    color(45, 45, 45),
+    color(140, 140, 140),
+    color(255, 255, 255)
+  },
+  {//Midnight Ink
+    color(10, 8, 20),
+    color(30, 25, 60),
+    color(65, 55, 110),
+    color(140, 125, 195),
+    color(220, 215, 240)
+  },
+  {//Glacier
+    color(15, 30, 40),
+    color(35, 75, 95),
+    color(70, 140, 165),
+    color(160, 210, 225),
+    color(230, 245, 250)
+  },
+  {//Volcanic
+    color(10, 5, 5),
+    color(60, 15, 10),
+    color(140, 40, 10),
+    color(220, 100, 20),
+    color(255, 200, 50)
+  },
+  {//Dusk
+    color(20, 15, 35),
+    color(75, 35, 80),
+    color(160, 70, 100),
+    color(220, 130, 100),
+    color(245, 200, 160)
+  },
+  {//Harvest
+    color(30, 18, 8),
+    color(80, 45, 15),
+    color(150, 90, 25),
+    color(210, 150, 50),
+    color(245, 215, 130)
+  },
+  {//Mahogany
+    color(25, 10, 10),
+    color(80, 30, 20),
+    color(155, 75, 50),
+    color(220, 170, 140)
+  },
+  {//Candy
+    color(100, 10, 40),
+    color(200, 50, 100),
+    color(240, 150, 180),
+    color(255, 225, 235)
+  },
+  {//Slate
+    color(20, 22, 26),
+    color(45, 52, 62),
+    color(80, 95, 115),
+    color(140, 160, 185),
+    color(210, 220, 230)
+  },
+  {//Neon Night
+    color(5, 5, 10),
+    color(10, 30, 40),
+    color(0, 80, 100),
+    color(0, 180, 160),
+    color(100, 255, 200)
+  },
+  {//Rose Gold
+    color(40, 15, 20),
+    color(100, 35, 45),
+    color(175, 85, 85),
+    color(220, 155, 130),
+    color(245, 215, 205)
+  },
+  {//Moss Stone
+    color(18, 22, 15),
+    color(45, 55, 35),
+    color(85, 100, 65),
+    color(145, 160, 110),
+    color(210, 220, 180)
+  },
+  {//Ember
+    color(15, 8, 5),
+    color(90, 25, 10),
+    color(200, 80, 30),
+    color(245, 180, 100)
+  },
+  {//Ultraviolet
+    color(10, 5, 20),
+    color(30, 10, 60),
+    color(75, 20, 130),
+    color(140, 60, 200),
+    color(200, 130, 240),
+    color(235, 210, 250)
+  },
+  {//Canyon
+    color(30, 15, 8),
+    color(80, 35, 18),
+    color(145, 70, 35),
+    color(195, 115, 65),
+    color(230, 170, 115),
+    color(248, 225, 195)
+  },
+  {//Twilight
+    color(8, 8, 18),
+    color(25, 20, 55),
+    color(60, 45, 110),
+    color(120, 80, 160),
+    color(190, 130, 180),
+    color(240, 200, 220)
+  },
+  {//Seafoam
+    color(10, 25, 22),
+    color(25, 65, 58),
+    color(50, 120, 105),
+    color(110, 185, 165),
+    color(195, 235, 220)
+  },
+  {//Copper
+    color(20, 12, 8),
+    color(65, 35, 20),
+    color(140, 80, 40),
+    color(200, 130, 80),
+    color(240, 200, 160)
+  },
 };
 
 String[] names={
@@ -231,6 +416,34 @@ String[] names={
   "Gross",
   "Cool Blue",
   "Cappuccino",
+  "DMG Green",
+  "GB Pocket",
+  "GB Red",
+  "GB Blue",
+  "GB Yellow",
+  "GB Purple",
+  "GB Teal",
+  "GB Sepia",
+  "GB Pink",
+  "GB Olive",
+  "GB Noir",
+  "Midnight Ink",
+  "Glacier",
+  "Volcanic",
+  "Dusk",
+  "Harvest",
+  "Mahogany",
+  "Candy",
+  "Slate",
+  "Neon Night",
+  "Rose Gold",
+  "Moss Stone",
+  "Ember",
+  "Ultraviolet",
+  "Canyon",
+  "Twilight",
+  "Seafoam",
+  "Copper",
 };
 
 PFont pixelFont;
